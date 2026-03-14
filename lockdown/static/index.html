@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Lockdown</title>
+<style>
+
+  :root {
+    --bg: #0a0a0c;
+    --surface: #141418;
+    --surface-raised: #1c1c22;
+    --border: #2a2a33;
+    --text: #e8e8ed;
+    --text-dim: #8888a0;
+    --accent: #ff3b5c;
+    --accent-glow: rgba(255, 59, 92, 0.25);
+    --green: #34d399;
+    --green-glow: rgba(52, 211, 153, 0.25);
+    --yellow: #fbbf24;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Login screen */
+  .login-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100dvh;
+    padding: 24px;
+    gap: 32px;
+  }
+
+  .login-screen h1 {
+    font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+
+  .login-screen .subtitle {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-top: -24px;
+    font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  input[type="password"], input[type="text"] {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    color: var(--text);
+    font-size: 16px;
+    font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .btn-sm {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .btn-green { background: var(--green); color: #000; }
+  .btn-yellow { background: var(--yellow); color: #000; }
+
+  .error-msg {
+    color: var(--accent);
+    font-size: 13px;
+    text-align: center;
+    font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+  }
+
+  /* Dashboard */
+  .dashboard {
+    display: none;
+    padding: 20px;
+    padding-bottom: 40px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .dash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dash-header h1 {
+    font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green-glow);
+    display: inline-block;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+  }
+
+  /* Toggle switch */
+  .toggle {
+    position: relative;
+    width: 48px;
+    height: 28px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .toggle input { display: none; }
+
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .toggle input:checked + .toggle-track {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    background: var(--text);
+    border-radius: 50%;
+    transition: transform 0.2s;
+    pointer-events: none;
+  }
+
+  .toggle input:checked ~ .toggle-thumb {
+    transform: translateX(20px);
+  }
+
+  /* Tag list (for apps / websites) */
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    min-height: 32px;
+  }
+
+  .tag {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tag-remove {
+    color: var(--accent);
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .add-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .add-row input {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  /* Lock button */
+  .lock-btn {
+    width: 100%;
+    padding: 20px;
+    font-size: 18px;
+    font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-radius: var(--radius);
+    transition: all 0.2s;
+  }
+
+  .lock-btn.locked {
+    background: var(--accent);
+    box-shadow: 0 0 24px var(--accent-glow), 0 0 48px var(--accent-glow);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .lock-btn.unlocked {
+    background: var(--surface-raised);
+    border: 2px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 24px var(--accent-glow); }
+    50% { box-shadow: 0 0 40px var(--accent-glow), 0 0 64px rgba(255,59,92,0.15); }
+  }
+
+  /* Schedule section */
+  .schedule-item {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+
+  .schedule-item .name {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .schedule-item .details {
+    color: var(--text-dim);
+    font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+    font-size: 12px;
+  }
+
+  .schedule-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .schedule-form select, .schedule-form input {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+
+  .schedule-form select { appearance: none; }
+
+  .day-picker {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .day-chip {
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+    cursor: pointer;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .day-chip.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .time-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .time-row input[type="time"] {
+    flex: 1;
+    font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+  }
+
+  .time-row span {
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login-screen" id="loginScreen">
+  <h1>LOCKDOWN</h1>
+  <p class="subtitle">remote control</p>
+  <div class="login-form">
+    <input type="password" id="passwordInput" placeholder="password" autocomplete="off">
+    <button class="btn" id="loginBtn" onclick="doLogin()">Authenticate</button>
+    <p class="error-msg" id="loginError"></p>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div class="dashboard" id="dashboard">
+  <div class="dash-header">
+    <h1>LOCKDOWN</h1>
+    <span><span class="status-dot"></span></span>
+  </div>
+
+  <!-- Screen Lock -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Screen Lock</span>
+    </div>
+    <div id="lockConfig" style="margin-bottom:12px;">
+      <input type="text" id="lockText" placeholder="Lock screen message..." value="This device is locked." style="width:100%;margin-bottom:10px;">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+        <div class="day-chip selected" data-template="minimal" onclick="selectTemplate(this)">Minimal</div>
+        <div class="day-chip" data-template="warning" onclick="selectTemplate(this)">Warning</div>
+        <div class="day-chip" data-template="elegant" onclick="selectTemplate(this)">Elegant</div>
+        <div class="day-chip" data-template="terminal" onclick="selectTemplate(this)">Terminal</div>
+      </div>
+    </div>
+    <button class="btn lock-btn unlocked" id="lockBtn" onclick="toggleLock()">
+      UNLOCKED
+    </button>
+  </div>
+
+  <!-- Screenshot -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Screenshot</span>
+      <label class="toggle">
+        <input type="checkbox" id="autoScreenshot" onchange="toggleAutoScreenshot()">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="btn btn-sm" id="captureBtn" onclick="captureScreenshot()">Capture</button>
+      <span id="screenshotStatus" style="font-size:12px;color:var(--text-dim);align-self:center;font-family:'SF Mono',ui-monospace,Menlo,monospace;"></span>
+    </div>
+    <div id="screenshotContainer" style="border-radius:8px;overflow:hidden;background:var(--surface-raised);min-height:60px;display:flex;align-items:center;justify-content:center;">
+      <span id="screenshotPlaceholder" style="color:var(--text-dim);font-size:13px;padding:20px;">No screenshot yet</span>
+      <img id="screenshotImg" style="width:100%;display:none;border-radius:8px;" onclick="openFullscreen(this)">
+    </div>
+  </div>
+
+  <!-- Fullscreen overlay -->
+  <div id="screenshotOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:1000;align-items:center;justify-content:center;cursor:pointer;" onclick="closeFullscreen()">
+    <img id="screenshotFull" style="max-width:100%;max-height:100%;object-fit:contain;">
+  </div>
+
+  <!-- App Blocking -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">App Blocking</span>
+      <label class="toggle">
+        <input type="checkbox" id="appToggle" onchange="toggleAppBlocking()">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+    <div class="tag-list" id="appTags"></div>
+    <div class="add-row">
+      <input type="text" id="appInput" placeholder="process name (e.g. discord.exe)">
+      <button class="btn btn-sm btn-outline" onclick="addApp()">Add</button>
+    </div>
+  </div>
+
+  <!-- Web Filtering -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Web Filtering</span>
+      <label class="toggle">
+        <input type="checkbox" id="webToggle" onchange="toggleWebFiltering()">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+    <div class="tag-list" id="webTags"></div>
+    <div class="add-row">
+      <input type="text" id="webInput" placeholder="domain (e.g. reddit.com)">
+      <button class="btn btn-sm btn-outline" onclick="addWebsite()">Add</button>
+    </div>
+    <details style="margin-top:12px;">
+      <summary style="color:var(--text-dim);cursor:pointer;font-size:14px;">+ Add from templates</summary>
+      <div id="templateList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
+    </details>
+  </div>
+
+  <!-- Watchdog -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Watchdog</span>
+    </div>
+    <p style="color:var(--text-dim);font-size:13px;margin-bottom:10px;">Auto-unlock if your phone loses connection while locked.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;" id="watchdogOptions">
+      <div class="day-chip" data-wd="0" onclick="setWatchdog(0)">Off</div>
+      <div class="day-chip" data-wd="300" onclick="setWatchdog(300)">5 min</div>
+      <div class="day-chip" data-wd="600" onclick="setWatchdog(600)">10 min</div>
+      <div class="day-chip" data-wd="1800" onclick="setWatchdog(1800)">30 min</div>
+      <div class="day-chip" data-wd="3600" onclick="setWatchdog(3600)">1 hr</div>
+    </div>
+  </div>
+
+  <!-- Schedules -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Schedules</span>
+    </div>
+    <div id="scheduleList"></div>
+    <details>
+      <summary style="color:var(--text-dim);cursor:pointer;font-size:14px;margin-top:8px;">
+        + Add schedule
+      </summary>
+      <div class="schedule-form" id="scheduleForm">
+        <input type="text" id="schedName" placeholder="Schedule name">
+        <div class="day-picker" id="dayPicker"></div>
+        <div class="time-row">
+          <input type="time" id="schedStart" value="09:00">
+          <span>to</span>
+          <input type="time" id="schedEnd" value="17:00">
+        </div>
+        <select id="schedAction">
+          <option value="block_apps">Block Apps</option>
+          <option value="block_web">Block Web</option>
+          <option value="lock_screen">Lock Screen</option>
+          <option value="block_all">Block All</option>
+        </select>
+        <button class="btn btn-sm" onclick="addSchedule()">Add Schedule</button>
+      </div>
+    </details>
+  </div>
+</div>
+
+<script>
+const API = window.location.origin;
+let token = null;
+let state = {};
+let selectedDays = [];
+const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+// --- Auth ---
+
+document.getElementById('passwordInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doLogin();
+});
+
+async function doLogin() {
+  const pw = document.getElementById('passwordInput').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+
+  if (!pw) { errEl.textContent = 'enter a password'; return; }
+
+  try {
+    const res = await fetch(`${API}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = data.error || 'authentication failed';
+      return;
+    }
+
+    token = data.token;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    await refreshStatus();
+  } catch (e) {
+    errEl.textContent = 'connection failed';
+  }
+}
+
+// --- API helpers ---
+
+async function apiGet(path) {
+  const res = await fetch(`${API}${path}`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+async function apiPost(path, body) {
+  const res = await fetch(`${API}${path}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+// --- Status ---
+
+async function refreshStatus() {
+  try {
+    state = await apiGet('/api/status');
+    renderDashboard();
+  } catch (e) {
+    console.error('Failed to refresh status:', e);
+  }
+}
+
+function renderDashboard() {
+  // Lock button
+  const lockBtn = document.getElementById('lockBtn');
+  const lockConfig = document.getElementById('lockConfig');
+  if (state.screen_locked) {
+    lockBtn.textContent = 'LOCKED — TAP TO UNLOCK';
+    lockBtn.className = 'btn lock-btn locked';
+    lockConfig.style.display = 'none';
+  } else {
+    lockBtn.textContent = 'LOCK';
+    lockBtn.className = 'btn lock-btn unlocked';
+    lockConfig.style.display = 'block';
+  }
+
+  // App blocking
+  document.getElementById('appToggle').checked = state.app_blocking_active;
+  renderTags('appTags', state.blocked_apps || [], 'app');
+
+  // Web filtering
+  document.getElementById('webToggle').checked = state.web_filtering_active;
+  renderTags('webTags', state.blocked_websites || [], 'web');
+  renderTemplates();
+
+  // Schedules
+  renderSchedules(state.schedules || []);
+
+  // Watchdog
+  renderWatchdog();
+
+  // Day picker (init once)
+  if (!document.getElementById('dayPicker').hasChildNodes()) {
+    initDayPicker();
+  }
+}
+
+// --- Tags ---
+
+function renderTags(containerId, items, type) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  items.forEach((item, i) => {
+    const tag = document.createElement('div');
+    tag.className = 'tag';
+    tag.innerHTML = `${esc(item)}<span class="tag-remove" onclick="removeItem('${type}', ${i})">&times;</span>`;
+    container.appendChild(tag);
+  });
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// --- App blocking ---
+
+async function addApp() {
+  const input = document.getElementById('appInput');
+  const val = input.value.trim();
+  if (!val) return;
+
+  const apps = [...(state.blocked_apps || []), val];
+  await apiPost('/api/apps', { apps, active: state.app_blocking_active });
+  input.value = '';
+  await refreshStatus();
+}
+
+async function toggleAppBlocking() {
+  await apiPost('/api/apps/toggle');
+  await refreshStatus();
+}
+
+// --- Web filtering ---
+
+const SITE_TEMPLATES = {
+  'Social Media': [
+    'facebook.com','instagram.com','twitter.com','x.com','tiktok.com',
+    'snapchat.com','linkedin.com','pinterest.com','threads.net',
+    'mastodon.social','bsky.app','tumblr.com'
+  ],
+  'Pornography': [
+    'pornhub.com','xvideos.com','xhamster.com','xnxx.com',
+    'redtube.com','youporn.com','spankbang.com','eporner.com',
+    'tube8.com','beeg.com','motherless.com','onlyfans.com',
+    'fansly.com','chaturbate.com','stripchat.com','bongacams.com',
+    'myfreecams.com','livejasmin.com','cam4.com','camsoda.com'
+  ],
+  'Reddit & Forums': [
+    'reddit.com','old.reddit.com','4chan.org','4channel.org',
+    'kiwifarms.net','somethingawful.com','forums.bodybuilding.com'
+  ],
+  'Video & Streaming': [
+    'youtube.com','youtu.be','twitch.tv','netflix.com','hulu.com',
+    'disneyplus.com','hbomax.com','max.com','crunchyroll.com',
+    'primevideo.com','peacocktv.com','paramountplus.com',
+    'dailymotion.com','vimeo.com','rumble.com','kick.com'
+  ],
+  'Gaming': [
+    'store.steampowered.com','steampowered.com','epicgames.com',
+    'ea.com','blizzard.com','roblox.com','minecraft.net',
+    'leagueoflegends.com','itch.io','gog.com','humblebundle.com'
+  ],
+  'News & Media': [
+    'cnn.com','foxnews.com','bbc.com','bbc.co.uk','nytimes.com',
+    'washingtonpost.com','theguardian.com','reuters.com',
+    'apnews.com','msnbc.com','huffpost.com','dailymail.co.uk',
+    'buzzfeed.com','vice.com'
+  ],
+  'Shopping': [
+    'amazon.com','ebay.com','walmart.com','target.com','etsy.com',
+    'aliexpress.com','wish.com','shein.com','temu.com',
+    'bestbuy.com','newegg.com'
+  ],
+  'Gambling': [
+    'draftkings.com','fanduel.com','betmgm.com','caesars.com',
+    'bet365.com','pokerstars.com','bovada.lv','betonline.ag',
+    'mybookie.ag'
+  ],
+  'Dating': [
+    'tinder.com','bumble.com','hinge.co','match.com','okcupid.com',
+    'pof.com','grindr.com','feeld.co','badoo.com','zoosk.com',
+    'eharmony.com','coffee-meets-bagel.com','fetlife.com'
+  ],
+};
+
+function renderTemplates() {
+  const container = document.getElementById('templateList');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const existing = new Set((state.blocked_websites || []).map(s => s.toLowerCase()));
+
+  for (const [category, domains] of Object.entries(SITE_TEMPLATES)) {
+    const alreadyAdded = domains.filter(d => existing.has(d.toLowerCase()));
+    const allAdded = alreadyAdded.length === domains.length;
+
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-sm ' + (allAdded ? 'btn-outline' : '');
+    btn.style.fontSize = '12px';
+    btn.style.opacity = allAdded ? '0.5' : '1';
+
+    const count = domains.length - alreadyAdded.length;
+    btn.textContent = allAdded ? `${category} ✓` : `${category} (${count})`;
+
+    if (!allAdded) {
+      btn.onclick = () => addTemplate(category);
+    } else {
+      btn.onclick = () => removeTemplate(category);
+    }
+
+    container.appendChild(btn);
+  }
+}
+
+async function addTemplate(category) {
+  const domains = SITE_TEMPLATES[category] || [];
+  const existing = new Set((state.blocked_websites || []).map(s => s.toLowerCase()));
+  const newDomains = domains.filter(d => !existing.has(d.toLowerCase()));
+
+  if (newDomains.length === 0) return;
+
+  const websites = [...(state.blocked_websites || []), ...newDomains];
+  await apiPost('/api/websites', { websites, active: state.web_filtering_active });
+  await refreshStatus();
+}
+
+async function removeTemplate(category) {
+  const domains = new Set((SITE_TEMPLATES[category] || []).map(s => s.toLowerCase()));
+  const websites = (state.blocked_websites || []).filter(w => !domains.has(w.toLowerCase()));
+  await apiPost('/api/websites', { websites, active: state.web_filtering_active });
+  await refreshStatus();
+}
+
+async function addWebsite() {
+  const input = document.getElementById('webInput');
+  const val = input.value.trim();
+  if (!val) return;
+
+  const websites = [...(state.blocked_websites || []), val];
+  await apiPost('/api/websites', { websites, active: state.web_filtering_active });
+  input.value = '';
+  await refreshStatus();
+}
+
+async function toggleWebFiltering() {
+  await apiPost('/api/websites/toggle');
+  await refreshStatus();
+}
+
+// --- Remove items ---
+
+async function removeItem(type, index) {
+  if (type === 'app') {
+    const apps = [...state.blocked_apps];
+    apps.splice(index, 1);
+    await apiPost('/api/apps', { apps, active: state.app_blocking_active });
+  } else {
+    const websites = [...state.blocked_websites];
+    websites.splice(index, 1);
+    await apiPost('/api/websites', { websites, active: state.web_filtering_active });
+  }
+  await refreshStatus();
+}
+
+// --- Screen lock ---
+
+let selectedTemplate = 'minimal';
+
+function selectTemplate(el) {
+  document.querySelectorAll('[data-template]').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTemplate = el.dataset.template;
+}
+
+async function toggleLock() {
+  const newState = !state.screen_locked;
+  const payload = { locked: newState };
+
+  if (newState) {
+    payload.text = document.getElementById('lockText').value || 'This device is locked.';
+    payload.template = selectedTemplate;
+  }
+
+  await apiPost('/api/lock', payload);
+  await refreshStatus();
+}
+
+// --- Schedules ---
+
+function initDayPicker() {
+  const picker = document.getElementById('dayPicker');
+  DAYS.forEach((day, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'day-chip';
+    chip.textContent = DAY_LABELS[i];
+    chip.onclick = () => {
+      const idx = selectedDays.indexOf(day);
+      if (idx >= 0) {
+        selectedDays.splice(idx, 1);
+        chip.classList.remove('selected');
+      } else {
+        selectedDays.push(day);
+        chip.classList.add('selected');
+      }
+    };
+    picker.appendChild(chip);
+  });
+}
+
+function renderSchedules(schedules) {
+  const container = document.getElementById('scheduleList');
+  container.innerHTML = '';
+  schedules.forEach((s, i) => {
+    const item = document.createElement('div');
+    item.className = 'schedule-item';
+    const days = (s.days || []).map(d => d.slice(0, 3)).join(', ');
+    // NaiveTime comes as "HH:MM:SS", trim to HH:MM
+    const start = (s.start_time || '').slice(0, 5);
+    const end = (s.end_time || '').slice(0, 5);
+    item.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div class="name">${esc(s.name)}</div>
+          <div class="details">${days} &middot; ${start}-${end} &middot; ${esc(s.action)}</div>
+        </div>
+        <span class="tag-remove" onclick="removeSchedule(${i})" style="font-size:20px;">&times;</span>
+      </div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+async function addSchedule() {
+  const name = document.getElementById('schedName').value.trim();
+  if (!name || selectedDays.length === 0) return;
+
+  const start = document.getElementById('schedStart').value + ':00';
+  const end = document.getElementById('schedEnd').value + ':00';
+  const action = document.getElementById('schedAction').value;
+
+  const newSched = {
+    id: 'sched_' + Date.now(),
+    name,
+    days: [...selectedDays],
+    start_time: start,
+    end_time: end,
+    action,
+    enabled: true,
+  };
+
+  const schedules = [...(state.schedules || []), newSched];
+  await apiPost('/api/schedules', { schedules });
+
+  document.getElementById('schedName').value = '';
+  selectedDays = [];
+  document.querySelectorAll('.day-chip').forEach(c => c.classList.remove('selected'));
+  await refreshStatus();
+}
+
+async function removeSchedule(index) {
+  const schedules = [...state.schedules];
+  schedules.splice(index, 1);
+  await apiPost('/api/schedules', { schedules });
+  await refreshStatus();
+}
+
+// --- Auto-refresh every 10s ---
+setInterval(() => {
+  if (token) refreshStatus();
+}, 10000);
+
+// --- Watchdog ---
+
+function renderWatchdog() {
+  const timeout = state.watchdog_timeout_secs || 0;
+  document.querySelectorAll('[data-wd]').forEach(el => {
+    if (parseInt(el.dataset.wd) === timeout) {
+      el.classList.add('selected');
+    } else {
+      el.classList.remove('selected');
+    }
+  });
+}
+
+async function setWatchdog(secs) {
+  await apiPost('/api/watchdog', { timeout_secs: secs });
+  await refreshStatus();
+}
+
+// --- Screenshot ---
+let autoScreenshotInterval = null;
+
+async function captureScreenshot() {
+  const btn = document.getElementById('captureBtn');
+  const status = document.getElementById('screenshotStatus');
+  const img = document.getElementById('screenshotImg');
+  const placeholder = document.getElementById('screenshotPlaceholder');
+
+  btn.disabled = true;
+  status.textContent = 'capturing...';
+
+  try {
+    const res = await fetch(`${API}/api/screenshot`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      status.textContent = 'failed';
+      return;
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+
+    img.onload = () => {
+      // Revoke any old object URLs to prevent memory leaks.
+      if (img.dataset.prevUrl) URL.revokeObjectURL(img.dataset.prevUrl);
+      img.dataset.prevUrl = url;
+    };
+
+    img.src = url;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+
+    const now = new Date();
+    status.textContent = now.toLocaleTimeString();
+  } catch (e) {
+    status.textContent = 'error';
+    console.error('Screenshot failed:', e);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function toggleAutoScreenshot() {
+  const checked = document.getElementById('autoScreenshot').checked;
+  if (checked) {
+    captureScreenshot();
+    autoScreenshotInterval = setInterval(captureScreenshot, 5000);
+  } else {
+    if (autoScreenshotInterval) {
+      clearInterval(autoScreenshotInterval);
+      autoScreenshotInterval = null;
+    }
+  }
+}
+
+function openFullscreen(imgEl) {
+  const overlay = document.getElementById('screenshotOverlay');
+  const fullImg = document.getElementById('screenshotFull');
+  fullImg.src = imgEl.src;
+  overlay.style.display = 'flex';
+}
+
+function closeFullscreen() {
+  document.getElementById('screenshotOverlay').style.display = 'none';
+}
+</script>
+</body>
+</html>
